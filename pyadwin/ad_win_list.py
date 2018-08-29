@@ -1,9 +1,7 @@
-import numpy
-import math
-from utils import AdWinListNode
+from pyadwin import AdWinListNode
+
 
 class AdWinList(object):
-
     def __init__(self, M):
         self.head = None
         self.tail = None

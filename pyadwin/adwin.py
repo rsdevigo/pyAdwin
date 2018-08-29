@@ -1,30 +1,30 @@
-import numpy
 import math
-from utils import AdWinList
+
+from pyadwin import AdWinList
+
 
 class Adwin(object):
-
-    def __init__(self, delta = 0.01):
+    def __init__(self, delta=0.01):
         self.MINTCLOCK = 1.0
         self.MINLENGTHWINDOW = 16
         self.DELTA = delta
         self.MAXBUCKETS = 5
         self.bucketList = AdWinList(self.MAXBUCKETS)
-        self.mintTime=0.0;
-        self.mintClock=self.MINTCLOCK;
-        self.mdblError=0.0;
-        self.mdblWidth=0.0;
-        self.lastBucketRow=0;
-        self.sum = 0.0;
-        self.W = 0.0;
-        self.var = 0.0;
-        self.bucketNumber=0;
+        self.mintTime = 0.0
+        self.mintClock = self.MINTCLOCK
+        self.mdblError = 0.0
+        self.mdblWidth = 0.0
+        self.lastBucketRow = 0
+        self.sum = 0.0
+        self.W = 0.0
+        self.var = 0.0
+        self.bucketNumber = 0
 
     def getEstimation(self):
         if self.W > 0:
-            return self.sum / float(self.W);
+            return self.sum / float(self.W)
         else:
-            return 0;
+            return 0
 
     def update(self, value):
         self.insertElement(value)
@@ -39,25 +39,25 @@ class Adwin(object):
         i = self.lastBucketRow
 
         while True:
-            for k in range(it.size-1, -1, -1):
-                print str(i)+" ["+str(it.sum[k])+" de "+str(self.bucketSize(i))+"],",
+            for k in range(it.size - 1, -1, -1):
+                print str(i) + " [" + str(it.sum[k]) + " de " + str(self.bucketSize(i)) + "],",
 
             print
             it = it.prev
             i -= 1
             if it is None:
-                break;
+                break
 
     def length(self):
         return self.W
 
     def insertElement(self, value):
-        self.W +=1
+        self.W += 1
         self.bucketList.head.addBack(float(value), 0.0)
         self.bucketNumber += 1
 
         if self.W > 1:
-            self.var += (self.W-1) * (value-self.sum/(self.W-1)) * (value-self.sum/(self.W-1))/self.W
+            self.var += (self.W - 1) * (value - self.sum / (self.W - 1)) * (value - self.sum / (self.W - 1)) / self.W
 
         self.sum += value
 
@@ -70,7 +70,7 @@ class Adwin(object):
 
         while True:
             k = cursor.size
-            if k == self.MAXBUCKETS+1:
+            if k == self.MAXBUCKETS + 1:
                 nextNode = cursor.next
                 if nextNode is None:
                     self.bucketList.addToTail()
@@ -78,10 +78,10 @@ class Adwin(object):
                     self.lastBucketRow += 1
                 n1 = self.bucketSize(i)
                 n2 = self.bucketSize(i)
-                u1 = cursor.sum[0]/n1
-                u2 = cursor.sum[1]/n2
-                incVariance = n1*n2*(u1-u2)*(u1-u2)/(n1+n2)
-                nextNode.addBack(cursor.sum[0]+cursor.sum[1], cursor.variance[0]+cursor.variance[1]+incVariance)
+                u1 = cursor.sum[0] / n1
+                u2 = cursor.sum[1] / n2
+                incVariance = n1 * n2 * (u1 - u2) * (u1 - u2) / (n1 + n2)
+                nextNode.addBack(cursor.sum[0] + cursor.sum[1], cursor.variance[0] + cursor.variance[1] + incVariance)
                 self.bucketNumber -= 1
                 cursor.dropFront(2)
                 if nextNode.size <= self.MAXBUCKETS:
@@ -115,7 +115,7 @@ class Adwin(object):
 
                 while True:
                     for k in range(it.size):
-                        if i == 0 and k == it.size-1:
+                        if i == 0 and k == it.size - 1:
                             quit = True
                             break
                         n0 += self.bucketSize(i)
@@ -134,15 +134,16 @@ class Adwin(object):
                     i -= 1
                     if quit or it is None:
                         break
-        return change;
+        return change
 
     def deleteElement(self):
         node = self.bucketList.tail
         n1 = self.bucketSize(self.lastBucketRow)
         self.W -= n1
         self.sum -= node.sum[0]
-        u1 = node.sum[0]/n1
-        incVariance = float(node.variance[0]+n1*self.W*(u1-self.sum/self.W)*(u1-self.sum/self.W))/(float(n1+self.W))
+        u1 = node.sum[0] / n1
+        incVariance = float(node.variance[0] + n1 * self.W * (u1 - self.sum / self.W) * (u1 - self.sum / self.W)) / (
+        float(n1 + self.W))
         self.var -= incVariance
         node.dropFront()
         self.bucketNumber -= 1
@@ -154,14 +155,14 @@ class Adwin(object):
         n0 = float(N0)
         n1 = float(N1)
         n = float(self.W)
-        diff = float(u0/n0) - float(u1/n1)
+        diff = float(u0 / n0) - float(u1 / n1)
 
-        v = self.var/self.W
-        dd = math.log(2.0*math.log(n)/self.DELTA)
+        v = self.var / self.W
+        dd = math.log(2.0 * math.log(n) / self.DELTA)
 
         mintMinWinLength = 5
-        m = (float(1/((n0-mintMinWinLength+1))))+(float(1/((n1-mintMinWinLength+1))))
-        eps = math.sqrt(2*m*v*dd)+float(2/3*dd*m)
+        m = (float(1 / ((n0 - mintMinWinLength + 1)))) + (float(1 / ((n1 - mintMinWinLength + 1))))
+        eps = math.sqrt(2 * m * v * dd) + float(2 / 3 * dd * m)
 
         if math.fabs(diff) > eps:
             return True
@@ -169,4 +170,4 @@ class Adwin(object):
             return False
 
     def bucketSize(self, Row):
-        return int(math.pow(2,Row));
+        return int(math.pow(2, Row))
